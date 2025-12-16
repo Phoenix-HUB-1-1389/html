@@ -1,0 +1,3637 @@
+<script>
+<!--
+document.write(unescape("<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>白名单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #111111;
+            --accent-color: #ffffff;
+            --highlight-color: #ffffff;
+            --text-color: #e0e0e0;
+            --border-color: #333333;
+            --success-color: #00ff80;
+            --danger-color: #ff4757;
+            --warning-color: #ffcc00;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-box {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border-color);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-logo h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--highlight-color);
+            margin-bottom: 10px;
+        }
+        
+        .auth-logo p {
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .auth-tab.active {
+            color: var(--highlight-color);
+            border-bottom: 2px solid var(--highlight-color);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--highlight-color);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--highlight-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #cccccc;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .system-container {
+            display: none;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: var(--secondary-color);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-left: 10px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .nav-menu {
+            list-style: none;
+            padding: 0 10px;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--highlight-color);
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--highlight-color);
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .user-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            width: 200px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .user-menu.active {
+            display: block;
+        }
+        
+        .user-menu-item {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .user-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--highlight-color);
+        }
+        
+        .card {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+        
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--highlight-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #ff3742;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #00e673;
+            box-shadow: 0 0 10px rgba(0, 255, 128, 0.5);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e6b800;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background-color: rgba(0, 255, 128, 0.2);
+            color: var(--success-color);
+        }
+        
+        .status-inactive {
+            background-color: rgba(255, 71, 87, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .status-used {
+            background-color: rgba(255, 204, 0, 0.2);
+            color: var(--warning-color);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .close-btn:hover {
+            color: var(--highlight-color);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar .logo h1, .sidebar .nav-link span {
+                display: none;
+            }
+            
+            .sidebar .nav-link {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .sidebar .nav-link i {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+        
+        .import-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .import-area:hover {
+            border-color: var(--highlight-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .import-area i {
+            font-size: 3rem;
+            color: var(--highlight-color);
+            margin-bottom: 15px;
+        }
+        
+        .import-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .import-hint {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border-color: var(--highlight-color);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--highlight-color);
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+        
+        .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--highlight-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid var(--border-color);
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-placeholder {
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .notification.error {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .notification.info {
+            border-left: 4px solid var(--highlight-color);
+        }
+        
+        .notification.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .action-card {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border-color: var(--highlight-color);
+        }
+        
+        .action-icon {
+            font-size: 2.5rem;
+            color: var(--highlight-color);
+            margin-bottom: 15px;
+        }
+        
+        .action-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+        
+        .action-description {
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+        
+        .code-display {
+            background-color: #111;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00ff80;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .copy-btn {
+            margin-top: 10px;
+        }
+        
+        .encryption-area {
+            margin-top: 30px;
+        }
+        
+        .encryption-result {
+            margin-top: 20px;
+        }
+        
+        .backend-area {
+            margin-top: 20px;
+        }
+        
+        .backend-code {
+            background-color: #111;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00ff80;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .blacklist-area {
+            margin-top: 20px;
+        }
+        
+        .api-settings {
+            margin-top: 20px;
+        }
+        
+        .project-modal {
+            max-width: 600px;
+        }
+        
+        .project-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .project-card {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border-color: var(--highlight-color);
+        }
+        
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+        
+        .project-description {
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+        
+        .project-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .settings-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .settings-section {
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .settings-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+        
+        .settings-group {
+            margin-bottom: 15px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--highlight-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .announcement-modal {
+            max-width: 700px;
+        }
+        
+        .announcement-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .announcement-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+        }
+        
+        .announcement-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .key-management {
+            margin-top: 20px;
+        }
+        
+        .key-generation {
+            margin-bottom: 20px;
+        }
+        
+        .key-list {
+            margin-top: 20px;
+        }
+        
+        .key-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .copy-confirmation-modal {
+            max-width: 400px;
+        }
+        
+        .generated-keys {
+            background-color: #111;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00ff80;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .clear-backend-btn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container" id="authContainer">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <h1 id="authSystemName">Frost</h1>
+                <p>白名单 & 卡密系统</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">登录</div>
+                <div class="auth-tab" data-tab="register">注册</div>
+            </div>
+            
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">用户名</label>
+                    <input type="text" id="loginUsername" placeholder="输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="输入密码" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </button>
+                </div>
+            </form>
+            
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">用户名</label>
+                    <input type="text" id="registerUsername" placeholder="创建用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">邮箱</label>
+                    <input type="email" id="registerEmail" placeholder="输入邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="创建密码" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">确认密码</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="确认密码" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> 注册
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="system-container" id="systemContainer">
+        <div class="container">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="logo-icon" id="systemLogo">F</div>
+                    <h1 id="systemName">Frost</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-page="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>主界面</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="whitelist">
+                            <i class="fas fa-list-check"></i>
+                            <span>白名单管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="blacklist">
+                            <i class="fas fa-ban"></i>
+                            <span>黑名单管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="key-management">
+                            <i class="fas fa-key"></i>
+                            <span>卡密管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="import-export">
+                            <i class="fas fa-file-import"></i>
+                            <span>导入/导出</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="code-embed">
+                            <i class="fas fa-code"></i>
+                            <span>代码嵌入</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="key-embed">
+                            <i class="fas fa-key"></i>
+                            <span>卡密系统嵌入</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="encryption">
+                            <i class="fas fa-lock"></i>
+                            <span>源码加密</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="backend">
+                            <i class="fas fa-server"></i>
+                            <span>后台管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>系统设置</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="logs">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>操作日志</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="main-content">
+                <div class="header">
+                    <h2 class="page-title">主界面</h2>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <span id="userDisplayName">用户名</span>
+                        <div class="user-menu" id="userMenu">
+                            <div class="user-menu-item" id="profileSettings">
+                                <i class="fas fa-user-cog"></i> 个人设置
+                            </div>
+                            <div class="user-menu-item" id="systemSettings">
+                                <i class="fas fa-cog"></i> 系统设置
+                            </div>
+                            <div class="user-menu-item" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> 退出登录
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="dashboard" class="page active">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-value" id="whitelistCount">0</div>
+                            <div class="stat-label">白名单用户</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-ban"></i>
+                            <div class="stat-value" id="blacklistCount">0</div>
+                            <div class="stat-label">黑名单用户</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-key"></i>
+                            <div class="stat-value" id="keysCount">0</div>
+                            <div class="stat-label">卡密数量</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="stat-value" id="totalUses">0</div>
+                            <div class="stat-label">总使用次数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="navigateToPage('whitelist')">
+                            <div class="action-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="action-title">添加白名单</div>
+                            <div class="action-description">快速添加新的设备码到白名单</div>
+                        </div>
+                        <div class="action-card" onclick="navigateToPage('blacklist')">
+                            <div class="action-icon">
+                                <i class="fas fa-ban"></i>
+                            </div>
+                            <div class="action-title">添加黑名单</div>
+                            <div class="action-description">将设备添加到黑名单</div>
+                        </div>
+                        <div class="action-card" onclick="navigateToPage('key-management')">
+                            <div class="action-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="action-title">生成卡密</div>
+                            <div class="action-description">创建新的卡密用于授权</div>
+                        </div>
+                        <div class="action-card" onclick="showDeleteAllModal()">
+                            <div class="action-icon">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            <div class="action-title">清空白名单</div>
+                            <div class="action-description">删除所有白名单记录</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">最近活动</h3>
+                            <button class="btn btn-secondary" onclick="loadRecentActivity()">
+                                <i class="fas fa-sync-alt"></i> 刷新
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table id="recentActivity">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>用户</th>
+                                        <th>设备码</th>
+                                        <th>操作</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="whitelist" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">白名单列表</h3>
+                            <div>
+                                <button class="btn btn-secondary" onclick="showAddWhitelistModal()">
+                                    <i class="fas fa-plus"></i> 添加白名单
+                                </button>
+                                <button class="btn btn-danger" onclick="showDeleteAllModal()">
+                                    <i class="fas fa-trash"></i> 删除全部
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="whitelistTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>设备码</th>
+                                        <th>添加时间</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="blacklist" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">黑名单列表</h3>
+                            <div>
+                                <button class="btn btn-secondary" onclick="showAddBlacklistModal()">
+                                    <i class="fas fa-plus"></i> 添加黑名单
+                                </button>
+                                <button class="btn btn-danger" onclick="showDeleteAllBlacklistModal()">
+                                    <i class="fas fa-trash"></i> 删除全部
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="blacklistTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>设备码</th>
+                                        <th>添加时间</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="key-management" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">卡密管理</h3>
+                            <div>
+                                <button class="btn btn-primary" onclick="showGenerateKeyModal()">
+                                    <i class="fas fa-plus"></i> 生成卡密
+                                </button>
+                                <button class="btn btn-danger" onclick="showDeleteAllKeysModal()">
+                                    <i class="fas fa-trash"></i> 删除全部
+                                </button>
+                            </div>
+                        </div>
+                        <div class="key-generation">
+                            <div class="form-group">
+                                <label for="keyAmount">生成数量</label>
+                                <input type="number" id="keyAmount" value="1" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="keyDuration">有效期（天）</label>
+                                <input type="number" id="keyDuration" value="30" min="1" max="365">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-success" onclick="generateKeys()">
+                                    <i class="fas fa-key"></i> 生成卡密
+                                </button>
+                            </div>
+                        </div>
+                        <div class="key-list">
+                            <div class="table-container">
+                                <table id="keysTable">
+                                    <thead>
+                                        <tr>
+                                            <th>卡密</th>
+                                            <th>状态</th>
+                                            <th>有效期</th>
+                                            <th>绑定设备</th>
+                                            <th>创建时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="import-export" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">导入白名单</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="import-area" id="dropArea">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <div class="import-text">点击选择文件或拖放文件到这里</div>
+                                <div class="import-hint">支持 .txt, .csv, .json, .lua 格式</div>
+                                <input type="file" id="fileInput" style="display: none;" accept=".txt,.csv,.json,.lua">
+                            </div>
+                            
+                            <div class="form-group">
+                                <button class="btn btn-primary" id="importBtn">
+                                    <i class="fas fa-file-import"></i> 开始导入
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">导出白名单</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="exportFormat">导出格式</label>
+                                <select id="exportFormat">
+                                    <option value="json">JSON</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="txt">TXT</option>
+                                    <option value="lua">LUA</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" id="exportBtn">
+                                    <i class="fas fa-file-export"></i> 导出白名单
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">手动复制白名单</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>白名单代码 (LUA格式)</label>
+                                <div class="code-display" id="whitelistCode">
+                                </div>
+                                <button class="btn btn-secondary copy-btn" onclick="copyWhitelistCode()">
+                                    <i class="fas fa-copy"></i> 复制代码
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="code-embed" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">代码嵌入</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>输入您的源代码，系统将自动在文件开头和结尾添加白名单验证代码。</p>
+                            
+                            <div class="form-group">
+                                <label for="sourceCodeInput">源代码</label>
+                                <textarea id="sourceCodeInput" rows="15" placeholder="输入您的源代码"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button class="btn btn-primary" id="embedCodeBtn">
+                                    <i class="fas fa-code"></i> 嵌入白名单代码
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="key-embed" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">卡密系统嵌入</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>输入您的源代码，系统将自动在文件开头和结尾添加卡密验证系统代码。</p>
+                            
+                            <div class="form-group">
+                                <label for="keySourceCodeInput">源代码</label>
+                                <textarea id="keySourceCodeInput" rows="15" placeholder="输入您的源代码"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button class="btn btn-primary" id="embedKeyCodeBtn">
+                                    <i class="fas fa-key"></i> 嵌入卡密系统
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="encryption" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">源码加密</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="sourceCode">源代码</label>
+                                <textarea id="sourceCode" rows="10" placeholder="输入要加密的源代码"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="encryptionMethod">加密方法</label>
+                                <select id="encryptionMethod">
+                                    <option value="base64">Base64编码</option>
+                                    <option value="xor">XOR加密</option>
+                                    <option value="reverse">字符串反转</option>
+                                    <option value="custom">自定义加密</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" id="encryptBtn">
+                                    <i class="fas fa-lock"></i> 加密源码
+                                </button>
+                            </div>
+                            
+                            <div class="encryption-result" id="encryptionResult" style="display: none;">
+                                <div class="form-group">
+                                    <label>加密后的代码</label>
+                                    <div class="code-display" id="encryptedCode">
+                                    </div>
+                                    <button class="btn btn-secondary copy-btn" onclick="copyEncryptedCode()">
+                                        <i class="fas fa-copy"></i> 复制代码
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="backend" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">后台管理</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>嵌入完成后的代码将显示在这里，您可以下载或复制。</p>
+                            
+                            <div class="backend-area">
+                                <div class="form-group">
+                                    <label>嵌入后的代码</label>
+                                    <div class="backend-code" id="backendCode">
+                                    </div>
+                                    <button class="btn btn-secondary copy-btn" onclick="copyBackendCode()">
+                                        <i class="fas fa-copy"></i> 复制代码
+                                    </button>
+                                    <button class="btn btn-primary" id="downloadBackendBtn">
+                                        <i class="fas fa-download"></i> 下载为TXT
+                                    </button>
+                                    <button class="btn btn-danger clear-backend-btn" onclick="clearBackendCode()">
+                                        <i class="fas fa-trash"></i> 清除后台
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="settings" class="page">
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3 class="settings-title">白名单设置</h3>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="enableIPWhitelist" checked>
+                                    启用IP白名单
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="enableUsernameWhitelist" checked>
+                                    启用用户名白名单
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="enableHardwareIDWhitelist" checked>
+                                    启用硬件ID白名单
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="autoUpdateWhitelist" checked>
+                                    自动更新白名单
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3 class="settings-title">安全设置</h3>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="enableTwoFactorAuth">
+                                    启用双因素认证
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="enableLoginAlerts">
+                                    启用登录提醒
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="enableSessionTimeout">
+                                    启用会话超时
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label for="sessionTimeout">会话超时时间（分钟）</label>
+                                <input type="number" id="sessionTimeout" value="30" min="5" max="1440">
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3 class="settings-title">备份设置</h3>
+                            <div class="settings-group">
+                                <label for="backupInterval">备份间隔</label>
+                                <select id="backupInterval">
+                                    <option value="daily">每日</option>
+                                    <option value="weekly">每周</option>
+                                    <option value="monthly">每月</option>
+                                </select>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="autoBackup" checked>
+                                    自动备份
+                                </label>
+                            </div>
+                            <div class="settings-group">
+                                <label>
+                                    <input type="checkbox" id="backupToAPI">
+                                    备份到API
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3 class="settings-title">项目设置</h3>
+                            <div class="settings-group">
+                                <label for="projectName">项目名称</label>
+                                <input type="text" id="projectName" placeholder="输入项目名称">
+                            </div>
+                            <div class="settings-group">
+                                <label for="announcement">系统公告</label>
+                                <textarea id="announcement" rows="4" placeholder="输入系统公告"></textarea>
+                            </div>
+                            <div class="settings-group">
+                                <button class="btn btn-primary" id="saveProjectSettings">
+                                    <i class="fas fa-save"></i> 保存项目设置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="logs" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">操作日志</h3>
+                            <button class="btn btn-secondary" onclick="exportLogs()">
+                                <i class="fas fa-download"></i> 导出日志
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table id="logsTable">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>用户</th>
+                                        <th>操作</th>
+                                        <th>详情</th>
+                                        <th>IP地址</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="addWhitelistModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加白名单</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="modalWhitelistForm">
+                <div class="form-group">
+                    <label for="whitelistType">白名单类型</label>
+                    <select id="whitelistType">
+                        <option value="hardware">硬件ID</option>
+                        <option value="username">用户名</option>
+                        <option value="ip">IP地址</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modalDeviceCode">设备码/用户名/IP</label>
+                    <input type="text" id="modalDeviceCode" placeholder="输入设备码、用户名或IP地址" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary close-modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="addBlacklistModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加黑名单</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="modalBlacklistForm">
+                <div class="form-group">
+                    <label for="blacklistType">黑名单类型</label>
+                    <select id="blacklistType">
+                        <option value="hardware">硬件ID</option>
+                        <option value="username">用户名</option>
+                        <option value="ip">IP地址</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modalBlacklistDeviceCode">设备码/用户名/IP</label>
+                    <input type="text" id="modalBlacklistDeviceCode" placeholder="输入设备码、用户名或IP地址" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary close-modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="deleteAllModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">删除所有白名单</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除所有白名单吗？此操作不可撤销！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAll">确认删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="deleteAllBlacklistModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">删除所有黑名单</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除所有黑名单吗？此操作不可撤销！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAllBlacklist">确认删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="deleteAllKeysModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">删除所有卡密</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除所有卡密吗？此操作不可撤销！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAllKeys">确认删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">个人设置</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="profileForm">
+                <div class="avatar-upload">
+                    <div class="avatar-preview" id="avatarPreview">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <button type="button" class="btn btn-secondary" id="changeAvatarBtn">
+                        <i class="fas fa-camera"></i> 更换头像
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="profileUsername">用户名</label>
+                    <input type="text" id="profileUsername" placeholder="输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="profileEmail">邮箱</label>
+                    <input type="email" id="profileEmail" placeholder="输入邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="profilePassword">新密码</label>
+                    <input type="password" id="profilePassword" placeholder="输入新密码（可选）">
+                </div>
+                <div class="form-group">
+                    <label for="profileConfirmPassword">确认新密码</label>
+                    <input type="password" id="profileConfirmPassword" placeholder="确认新密码">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary close-modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="projectModal" class="modal">
+        <div class="modal-content project-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">创建新项目</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>欢迎使用Frost白名单系统！请为您的项目命名：</p>
+                <div class="project-form">
+                    <div class="form-group">
+                        <label for="projectNameInput">项目名称</label>
+                        <input type="text" id="projectNameInput" placeholder="输入项目名称" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectDescription">项目描述（可选）</label>
+                        <textarea id="projectDescription" rows="3" placeholder="输入项目描述"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">取消</button>
+                <button type="button" class="btn btn-primary" id="createProjectBtn">创建项目</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="announcementModal" class="modal">
+        <div class="modal-content announcement-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">系统公告</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="announcement-title" id="announcementTitle">欢迎使用Frost白名单系统</div>
+                <div class="announcement-content" id="announcementContent">
+                    <p class="announcement-text">感谢您选择Frost白名单系统！</p>
+                    <p class="announcement-text">本系统提供完整的白名单和卡密管理功能，支持API验证，确保您的脚本安全运行。</p>
+                    <p class="announcement-text">主要功能包括：</p>
+                    <ul>
+                        <li>白名单和黑名单管理</li>
+                        <li>卡密生成和验证</li>
+                        <li>API集成验证</li>
+                        <li>源码加密保护</li>
+                        <li>此系统永久免费</li>
+                    </ul>
+                    <p class="announcement-text">请仔细阅读使用说明，确保正确配置系统。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmAnnouncement">确认已读</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="copyConfirmationModal" class="modal">
+        <div class="modal-content copy-confirmation-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">卡密生成成功</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>已成功生成 <span id="generatedKeyCount">0</span> 个卡密！</p>
+                <div class="generated-keys" id="generatedKeysList">
+                </div>
+                <p>是否要复制这些卡密到剪贴板？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmCopyKeys">复制卡密</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <i class="fas fa-info-circle"></i>
+        <span id="notificationText">这是一条通知</span>
+    </div>
+
+    <script>
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let whitelist = JSON.parse(localStorage.getItem('whitelist')) || [];
+        let blacklist = JSON.parse(localStorage.getItem('blacklist')) || [];
+        let keys = JSON.parse(localStorage.getItem('keys')) || [];
+        let usageStats = JSON.parse(localStorage.getItem('usageStats')) || {
+            totalUses: 0,
+            todayActive: 0,
+            lastReset: new Date().toDateString()
+        };
+        let settings = JSON.parse(localStorage.getItem('settings')) || {
+            enableIPWhitelist: true,
+            enableUsernameWhitelist: true,
+            enableHardwareIDWhitelist: true,
+            autoUpdateWhitelist: true,
+            enableTwoFactorAuth: false,
+            enableLoginAlerts: true,
+            enableSessionTimeout: true,
+            sessionTimeout: 30,
+            backupInterval: 'daily',
+            autoBackup: true,
+            backupToAPI: false
+        };
+        let apiSettings = JSON.parse(localStorage.getItem('apiSettings')) || {
+            endpoint: 'https://api.frost-system.com',
+            apiKey: 'frost-system-key',
+            whitelistEndpoint: '/whitelist/verify',
+            keyVerificationEndpoint: '/key/verify',
+            keyActivationEndpoint: '/key/activate',
+            autoSync: true
+        };
+        let projectSettings = JSON.parse(localStorage.getItem('projectSettings')) || {
+            name: 'Frost',
+            description: '',
+            announcement: '欢迎使用Frost白名单系统！本系统提供完整的白名单和卡密管理功能，支持API验证，确保您的脚本安全运行。'
+        };
+        let logs = JSON.parse(localStorage.getItem('logs')) || [];
+        let backendCode = localStorage.getItem('backendCode') || '';
+        let recentlyGeneratedKeys = [];
+        
+        function generateDeviceId() {
+            return 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+        }
+        
+        function getCurrentDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = generateDeviceId();
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+        
+        function generateKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 16; i++) {
+                if (i > 0 && i % 4 === 0) result += '-';
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        const authContainer = document.getElementById('authContainer');
+        const systemContainer = document.getElementById('systemContainer');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const userAvatar = document.getElementById('userAvatar');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userMenu = document.getElementById('userMenu');
+        const profileSettings = document.getElementById('profileSettings');
+        const systemSettings = document.getElementById('systemSettings');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const profileModal = document.getElementById('profileModal');
+        const profileForm = document.getElementById('profileForm');
+        const avatarInput = document.getElementById('avatarInput');
+        const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        const addWhitelistModal = document.getElementById('addWhitelistModal');
+        const addBlacklistModal = document.getElementById('addBlacklistModal');
+        const deleteAllModal = document.getElementById('deleteAllModal');
+        const deleteAllBlacklistModal = document.getElementById('deleteAllBlacklistModal');
+        const deleteAllKeysModal = document.getElementById('deleteAllKeysModal');
+        const backendCodeElement = document.getElementById('backendCode');
+        const downloadBackendBtn = document.getElementById('downloadBackendBtn');
+        const projectModal = document.getElementById('projectModal');
+        const createProjectBtn = document.getElementById('createProjectBtn');
+        const authSystemName = document.getElementById('authSystemName');
+        const systemName = document.getElementById('systemName');
+        const systemLogo = document.getElementById('systemLogo');
+        const saveProjectSettingsBtn = document.getElementById('saveProjectSettings');
+        const announcementModal = document.getElementById('announcementModal');
+        const confirmAnnouncementBtn = document.getElementById('confirmAnnouncement');
+        const copyConfirmationModal = document.getElementById('copyConfirmationModal');
+        const generatedKeyCount = document.getElementById('generatedKeyCount');
+        const generatedKeysList = document.getElementById('generatedKeysList');
+        const confirmCopyKeys = document.getElementById('confirmCopyKeys');
+        const embedKeyCodeBtn = document.getElementById('embedKeyCodeBtn');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentUser) {
+                if (!projectSettings.name || projectSettings.name === 'Frost') {
+                    showProjectModal();
+                } else {
+                    showSystem();
+                }
+            } else {
+                showAuth();
+            }
+            
+            initEventListeners();
+            updateStats();
+            loadWhitelistTable();
+            loadBlacklistTable();
+            loadKeysTable();
+            loadLogsTable();
+            updateWhitelistCode();
+            updateBackendCode();
+            loadSettings();
+            updateSystemName();
+            
+            resetTodayStatsIfNeeded();
+        });
+        
+        function initEventListeners() {
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.auth-form').forEach(form => {
+                        form.classList.remove('active');
+                    });
+                    
+                    document.getElementById(tabId + 'Form').classList.add('active');
+                });
+            });
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                const user = users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    currentUser = user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showNotification('登录成功！', 'success');
+                    setTimeout(() => {
+                        if (!projectSettings.name || projectSettings.name === 'Frost') {
+                            showProjectModal();
+                        } else {
+                            showSystem();
+                        }
+                    }, 1000);
+                } else {
+                    showNotification('用户名或密码错误！', 'error');
+                }
+            });
+            
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('registerUsername').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    showNotification('密码不匹配！', 'error');
+                    return;
+                }
+                
+                if (users.find(u => u.username === username)) {
+                    showNotification('用户名已存在！', 'error');
+                    return;
+                }
+                
+                if (users.find(u => u.email === email)) {
+                    showNotification('邮箱已被注册！', 'error');
+                    return;
+                }
+                
+                const newUser = {
+                    id: generateId(),
+                    username,
+                    email,
+                    password,
+                    avatar: null,
+                    createdAt: new Date().toISOString()
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                currentUser = newUser;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                showNotification('注册成功！', 'success');
+                setTimeout(() => {
+                    showProjectModal();
+                }, 1500);
+            });
+            
+            userAvatar.addEventListener('click', function() {
+                userMenu.classList.toggle('active');
+            });
+            
+            profileSettings.addEventListener('click', function() {
+                userMenu.classList.remove('active');
+                openProfileModal();
+            });
+            
+            systemSettings.addEventListener('click', function() {
+                userMenu.classList.remove('active');
+                navigateToPage('settings');
+            });
+            
+            logoutBtn.addEventListener('click', function() {
+                userMenu.classList.remove('active');
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                showAuth();
+                showNotification('已退出登录', 'info');
+            });
+            
+            changeAvatarBtn.addEventListener('click', function() {
+                avatarInput.click();
+            });
+            
+            avatarInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        avatarPreview.innerHTML = `<img src="${e.target.result}" alt="头像">`;
+                        currentUser.avatar = e.target.result;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        updateUserAvatar();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('profileUsername').value;
+                const email = document.getElementById('profileEmail').value;
+                const password = document.getElementById('profilePassword').value;
+                const confirmPassword = document.getElementById('profileConfirmPassword').value;
+                
+                if (password && password !== confirmPassword) {
+                    showNotification('密码不匹配！', 'error');
+                    return;
+                }
+                
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex].username = username;
+                    users[userIndex].email = email;
+                    if (password) {
+                        users[userIndex].password = password;
+                    }
+                    
+                    localStorage.setItem('users', JSON.stringify(users));
+                    
+                    currentUser = users[userIndex];
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    updateUserInfo();
+                    showNotification('个人信息已更新！', 'success');
+                    closeModal(profileModal);
+                }
+            });
+            
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    document.querySelectorAll('.nav-link').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const pageId = this.getAttribute('data-page');
+                    document.querySelectorAll('.page').forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    document.getElementById(pageId).classList.add('active');
+                    
+                    const pageTitle = document.querySelector('.page-title');
+                    pageTitle.textContent = this.querySelector('span').textContent;
+                });
+            });
+            
+            document.getElementById('modalWhitelistForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addWhitelist();
+            });
+            
+            document.getElementById('modalBlacklistForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addBlacklist();
+            });
+            
+            document.getElementById('importBtn').addEventListener('click', function() {
+                importWhitelist();
+            });
+            
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                exportWhitelist();
+            });
+            
+            document.getElementById('embedCodeBtn').addEventListener('click', function() {
+                embedWhitelistCode();
+            });
+            
+            embedKeyCodeBtn.addEventListener('click', function() {
+                embedKeySystemCode();
+            });
+            
+            document.getElementById('encryptBtn').addEventListener('click', function() {
+                encryptSourceCode();
+            });
+            
+            document.getElementById('confirmDeleteAll').addEventListener('click', function() {
+                deleteAllWhitelist();
+            });
+            
+            document.getElementById('confirmDeleteAllBlacklist').addEventListener('click', function() {
+                deleteAllBlacklist();
+            });
+            
+            document.getElementById('confirmDeleteAllKeys').addEventListener('click', function() {
+                deleteAllKeys();
+            });
+            
+            downloadBackendBtn.addEventListener('click', function() {
+                downloadBackendCode();
+            });
+            
+            createProjectBtn.addEventListener('click', function() {
+                createProject();
+            });
+            
+            saveProjectSettingsBtn.addEventListener('click', function() {
+                saveProjectSettings();
+            });
+            
+            confirmAnnouncementBtn.addEventListener('click', function() {
+                closeModal(announcementModal);
+                showSystem();
+            });
+            
+            confirmCopyKeys.addEventListener('click', function() {
+                copyGeneratedKeys();
+            });
+            
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            dropArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = 'var(--highlight-color)';
+                dropArea.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            });
+            
+            dropArea.addEventListener('dragleave', () => {
+                dropArea.style.borderColor = 'var(--border-color)';
+                dropArea.style.backgroundColor = 'transparent';
+            });
+            
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = 'var(--border-color)';
+                dropArea.style.backgroundColor = 'transparent';
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    showNotification(`已选择文件: ${e.dataTransfer.files[0].name}`, 'info');
+                }
+            });
+            
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) {
+                    showNotification(`已选择文件: ${fileInput.files[0].name}`, 'info');
+                }
+            });
+            
+            document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    closeModal(modal);
+                });
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    closeModal(e.target);
+                }
+            });
+        }
+        
+        function showAuth() {
+            authContainer.style.display = 'flex';
+            systemContainer.style.display = 'none';
+        }
+        
+        function showSystem() {
+            authContainer.style.display = 'none';
+            systemContainer.style.display = 'block';
+            updateUserInfo();
+            updateStats();
+            loadWhitelistTable();
+            loadBlacklistTable();
+            loadKeysTable();
+            loadLogsTable();
+            updateWhitelistCode();
+            updateBackendCode();
+        }
+        
+        function showProjectModal() {
+            projectModal.style.display = 'flex';
+        }
+        
+        function showAnnouncementModal() {
+            announcementModal.style.display = 'flex';
+        }
+        
+        function showCopyConfirmationModal() {
+            copyConfirmationModal.style.display = 'flex';
+        }
+        
+        function updateUserInfo() {
+            if (currentUser) {
+                userDisplayName.textContent = currentUser.username;
+                updateUserAvatar();
+            }
+        }
+        
+        function updateUserAvatar() {
+            if (currentUser && currentUser.avatar) {
+                userAvatar.innerHTML = `<img src="${currentUser.avatar}" alt="头像">`;
+            } else {
+                userAvatar.innerHTML = `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`;
+            }
+        }
+        
+        function openProfileModal() {
+            if (currentUser) {
+                document.getElementById('profileUsername').value = currentUser.username;
+                document.getElementById('profileEmail').value = currentUser.email;
+                document.getElementById('profilePassword').value = '';
+                document.getElementById('profileConfirmPassword').value = '';
+                
+                if (currentUser.avatar) {
+                    avatarPreview.innerHTML = `<img src="${currentUser.avatar}" alt="头像">`;
+                } else {
+                    avatarPreview.innerHTML = `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`;
+                }
+                
+                profileModal.style.display = 'flex';
+            }
+        }
+        
+        function showAddWhitelistModal() {
+            document.getElementById('modalDeviceCode').value = '';
+            addWhitelistModal.style.display = 'flex';
+        }
+        
+        function showAddBlacklistModal() {
+            document.getElementById('modalBlacklistDeviceCode').value = '';
+            addBlacklistModal.style.display = 'flex';
+        }
+        
+        function showDeleteAllModal() {
+            deleteAllModal.style.display = 'flex';
+        }
+        
+        function showDeleteAllBlacklistModal() {
+            deleteAllBlacklistModal.style.display = 'flex';
+        }
+        
+        function showDeleteAllKeysModal() {
+            deleteAllKeysModal.style.display = 'flex';
+        }
+        
+        function closeModal(modal) {
+            modal.style.display = 'none';
+        }
+        
+        function showNotification(message, type) {
+            notificationText.textContent = message;
+            notification.className = 'notification';
+            notification.classList.add(type, 'show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        function navigateToPage(pageId) {
+            document.querySelectorAll('.nav-link').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            const pageTitle = document.querySelector('.page-title');
+            pageTitle.textContent = document.querySelector(`[data-page="${pageId}"] span`).textContent;
+        }
+        
+        function addWhitelist() {
+            const type = document.getElementById('whitelistType').value;
+            const value = document.getElementById('modalDeviceCode').value;
+            
+            if (whitelist.find(item => item.value === value && item.type === type)) {
+                showNotification('该白名单已存在！', 'error');
+                return;
+            }
+            
+            const newItem = {
+                id: generateId(),
+                type,
+                value,
+                status: 'active',
+                addedBy: currentUser.username,
+                addedAt: new Date().toISOString()
+            };
+            
+            whitelist.push(newItem);
+            localStorage.setItem('whitelist', JSON.stringify(whitelist));
+            
+            updateUsageStats();
+            
+            addLog('添加白名单', `类型: ${type}, 值: ${value}`);
+            
+            if (apiSettings.autoSync) {
+                syncToAPI();
+            }
+            
+            showNotification('白名单添加成功！', 'success');
+            closeModal(addWhitelistModal);
+            updateStats();
+            loadWhitelistTable();
+            updateWhitelistCode();
+        }
+        
+        function addBlacklist() {
+            const type = document.getElementById('blacklistType').value;
+            const value = document.getElementById('modalBlacklistDeviceCode').value;
+            
+            if (blacklist.find(item => item.value === value && item.type === type)) {
+                showNotification('该黑名单已存在！', 'error');
+                return;
+            }
+            
+            const newItem = {
+                id: generateId(),
+                type,
+                value,
+                status: 'active',
+                addedBy: currentUser.username,
+                addedAt: new Date().toISOString()
+            };
+            
+            blacklist.push(newItem);
+            localStorage.setItem('blacklist', JSON.stringify(blacklist));
+            
+            addLog('添加黑名单', `类型: ${type}, 值: ${value}`);
+            
+            showNotification('黑名单添加成功！', 'success');
+            closeModal(addBlacklistModal);
+            updateStats();
+            loadBlacklistTable();
+        }
+        
+        function generateKeys() {
+            const amount = parseInt(document.getElementById('keyAmount').value);
+            const duration = parseInt(document.getElementById('keyDuration').value);
+            
+            if (amount < 1 || amount > 100) {
+                showNotification('生成数量必须在1-100之间！', 'error');
+                return;
+            }
+            
+            const newKeys = [];
+            recentlyGeneratedKeys = [];
+            
+            for (let i = 0; i < amount; i++) {
+                const key = generateKey();
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + duration);
+                
+                newKeys.push({
+                    key,
+                    status: 'active',
+                    expiryDate: expiryDate.toISOString(),
+                    boundDevice: null,
+                    createdAt: new Date().toISOString()
+                });
+                
+                recentlyGeneratedKeys.push(key);
+            }
+            
+            keys = keys.concat(newKeys);
+            localStorage.setItem('keys', JSON.stringify(keys));
+            
+            addLog('生成卡密', `数量: ${amount}, 有效期: ${duration}天`);
+            
+            showNotification(`成功生成 ${amount} 个卡密！`, 'success');
+            loadKeysTable();
+            updateStats();
+            
+            generatedKeyCount.textContent = amount;
+            generatedKeysList.innerHTML = '';
+            recentlyGeneratedKeys.forEach(key => {
+                const keyElement = document.createElement('div');
+                keyElement.textContent = key;
+                generatedKeysList.appendChild(keyElement);
+            });
+            
+            showCopyConfirmationModal();
+        }
+        
+        function copyGeneratedKeys() {
+            const keysText = recentlyGeneratedKeys.join('\n');
+            const textArea = document.createElement('textarea');
+            textArea.value = keysText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            showNotification('卡密已复制到剪贴板！', 'success');
+            closeModal(copyConfirmationModal);
+        }
+        
+        function importWhitelist() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files.length) {
+                showNotification('请先选择文件！', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    let importedData = [];
+                    
+                    if (file.name.endsWith('.json')) {
+                        importedData = JSON.parse(content);
+                    } else if (file.name.endsWith('.csv')) {
+                        const lines = content.split('\n');
+                        const headers = lines[0].split(',');
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            
+                            const values = lines[i].split(',');
+                            const item = {};
+                            
+                            headers.forEach((header, index) => {
+                                item[header.trim()] = values[index] ? values[index].trim() : '';
+                            });
+                            
+                            importedData.push(item);
+                        }
+                    } else if (file.name.endsWith('.txt') || file.name.endsWith('.lua')) {
+                        const lines = content.split('\n');
+                        
+                        lines.forEach(line => {
+                            if (line.trim() !== '') {
+                                let value = line.trim();
+                                if (file.name.endsWith('.lua')) {
+                                    const match = line.match(/\["([^"]+)"\]\s*=/);
+                                    if (match) {
+                                        value = match[1];
+                                    }
+                                }
+                                
+                                if (value && value.trim() !== '') {
+                                    importedData.push({
+                                        type: 'hardware',
+                                        value: value.trim(),
+                                        status: 'active'
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    
+                    let addedCount = 0;
+                    importedData.forEach(item => {
+                        if (item.value && !whitelist.find(w => w.value === item.value && w.type === (item.type || 'hardware'))) {
+                            whitelist.push({
+                                id: generateId(),
+                                type: item.type || 'hardware',
+                                value: item.value,
+                                status: 'active',
+                                addedBy: currentUser.username,
+                                addedAt: new Date().toISOString()
+                            });
+                            addedCount++;
+                        }
+                    });
+                    
+                    localStorage.setItem('whitelist', JSON.stringify(whitelist));
+                    
+                    updateUsageStats();
+                    
+                    addLog('导入白名单', `文件: ${file.name}, 数量: ${addedCount}`);
+                    
+                    if (apiSettings.autoSync) {
+                        syncToAPI();
+                    }
+                    
+                    showNotification(`成功导入 ${addedCount} 个白名单！`, 'success');
+                    updateStats();
+                    loadWhitelistTable();
+                    updateWhitelistCode();
+                    fileInput.value = '';
+                } catch (error) {
+                    showNotification('文件解析失败！', 'error');
+                    console.error(error);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function exportWhitelist() {
+            const format = document.getElementById('exportFormat').value;
+            let content = '';
+            let filename = `whitelist_${new Date().toISOString().split('T')[0]}`;
+            
+            if (format === 'json') {
+                content = JSON.stringify(whitelist, null, 2);
+                filename += '.json';
+            } else if (format === 'csv') {
+                const headers = ['ID', '类型', '值', '状态', '添加者', '添加时间'];
+                content = headers.join(',') + '\n';
+                
+                whitelist.forEach(item => {
+                    const row = [
+                        item.id,
+                        item.type,
+                        item.value,
+                        item.status,
+                        item.addedBy,
+                        item.addedAt
+                    ];
+                    content += row.join(',') + '\n';
+                });
+                
+                filename += '.csv';
+            } else if (format === 'txt') {
+                whitelist.forEach(item => {
+                    content += item.value + '\n';
+                });
+                
+                filename += '.txt';
+            } else if (format === 'lua') {
+                content = 'local whitelist = {\n';
+                whitelist.forEach(item => {
+                    content += `  ["${item.value}"] = true,\n`;
+                });
+                content += '}\n\nreturn whitelist';
+                filename += '.lua';
+            }
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addLog('导出白名单', `格式: ${format}, 数量: ${whitelist.length}`);
+            
+            showNotification(`白名单已导出为${format.toUpperCase()}格式！`, 'success');
+        }
+        
+        function updateWhitelistCode() {
+            const whitelistCode = document.getElementById('whitelistCode');
+            let content = 'local whitelist = {\n';
+            whitelist.forEach(item => {
+                content += `  ["${item.value}"] = true,\n`;
+            });
+            content += '}\n\nreturn whitelist';
+            whitelistCode.textContent = content;
+        }
+        
+        function copyWhitelistCode() {
+            const whitelistCode = document.getElementById('whitelistCode');
+            const textArea = document.createElement('textarea');
+            textArea.value = whitelistCode.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('白名单代码已复制到剪贴板！', 'success');
+        }
+        
+        function embedWhitelistCode() {
+            const sourceCode = document.getElementById('sourceCodeInput').value;
+            
+            if (!sourceCode.trim()) {
+                showNotification('请输入源代码！', 'error');
+                return;
+            }
+            
+            const whitelistCode = generateWhitelistVerificationCode();
+            
+            const protectedCode = whitelistCode.start + '\n\n' + sourceCode + '\n\n' + whitelistCode.end;
+            
+            backendCode = protectedCode;
+            localStorage.setItem('backendCode', backendCode);
+            updateBackendCode();
+            
+            navigateToPage('backend');
+            
+            addLog('嵌入白名单代码', '源代码已嵌入白名单保护');
+            
+            showNotification('代码嵌入成功！已保存到后台区域。', 'success');
+        }
+        
+        function embedKeySystemCode() {
+            const sourceCode = document.getElementById('keySourceCodeInput').value;
+            
+            if (!sourceCode.trim()) {
+                showNotification('请输入源代码！', 'error');
+                return;
+            }
+            
+            const keySystemCode = generateKeySystemCode();
+            
+            const protectedCode = keySystemCode.start + '\n\n' + sourceCode + '\n\n' + keySystemCode.end;
+            
+            backendCode = protectedCode;
+            localStorage.setItem('backendCode', backendCode);
+            updateBackendCode();
+            
+            navigateToPage('backend');
+            
+            addLog('嵌入卡密系统', '源代码已嵌入卡密系统保护');
+            
+            showNotification('卡密系统嵌入成功！已保存到后台区域。', 'success');
+        }
+        
+        function generateWhitelistVerificationCode() {
+            const startCode = `
+local StarterGui = game:GetService("StarterGui")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local API_ENDPOINT = "${apiSettings.endpoint}"
+local API_KEY = "${apiSettings.apiKey}"
+local WHITELIST_ENDPOINT = "${apiSettings.whitelistEndpoint}"
+local function GetHardwareID()
+    local success, result = pcall(function()
+        return game:GetService("RbxAnalyticsService"):GetClientId()
+    end)
+    
+    if success and result then
+        return result
+    else
+        return tostring(game:GetService("Players").LocalPlayer.UserId)
+    end
+end
+local function GetIPAddress()
+    local success, result = pcall(function()
+        return game:HttpGet("http://api.ipify.org")
+    end)
+    
+    if success and result then
+        return result
+    else
+        return "unknown"
+    end
+end
+local function CopyToClipboard(text)
+    local success = pcall(function()
+        local clipboard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+        if clipboard then
+            clipboard(text)
+            return true
+        end
+    end)
+    return success
+end
+local function APIRequest(endpoint, data)
+    local success, result = pcall(function()
+        local url = API_ENDPOINT .. endpoint
+        local headers = {
+            ["Content-Type"] = "application/json",
+            ["Authorization"] = "Bearer " .. API_KEY
+        }
+        
+        return game:HttpPost(url, HttpService:JSONEncode(data), headers)
+    end)
+    
+    if success and result then
+        local success2, parsed = pcall(function()
+            return HttpService:JSONDecode(result)
+        end)
+        
+        if success2 then
+            return parsed
+        end
+    end
+    
+    return nil
+end
+local function IsWhitelisted(player)
+    local hardwareID = GetHardwareID()
+    local username = player.Name
+    local ipAddress = GetIPAddress()
+    
+    local response = APIRequest(WHITELIST_ENDPOINT, {
+        hardwareID = hardwareID,
+        username = username,
+        ipAddress = ipAddress
+    })
+    
+    if response and response.success then
+        return response.whitelisted
+    end
+    
+    return false
+end
+local localPlayer = Players.LocalPlayer
+
+StarterGui:SetCore("SendNotification", {
+    Title = "正在检查白名单",
+    Text = "正在验证设备权限...",
+    Duration = 2
+})
+wait()
+
+-- 检查白名单
+local isLocalPlayerWhitelisted = IsWhitelisted(localPlayer)
+
+if isLocalPlayerWhitelisted then
+    StarterGui:SetCore("SendNotification", {
+        Title = "白名单认证成功",
+        Text = "玩家:"..localPlayer.Name.."，设备验证通过，正在启动脚本",
+        Duration = 7,
+    })
+    wait()
+else
+    local hardwareID = GetHardwareID()
+    local ipAddress = GetIPAddress()
+    
+    local copySuccess = CopyToClipboard(hardwareID)
+    
+    StarterGui:SetCore("SendNotification", {
+        Title = "白名单验证失败",
+        Text = copySuccess and "设备ID已复制到剪贴板" or "设备ID: " .. hardwareID,
+        Duration = 5
+    })
+    
+    wait()
+    
+    StarterGui:SetCore("SendNotification", {
+        Title = "即将被踢出",
+        Text = "设备未授权，请联系管理员",
+        Duration = 3
+    })
+    
+    wait()
+    localPlayer:Kick("设备未授权，请联系管理员获取白名单。设备ID: " .. hardwareID .. " IP: " .. ipAddress)
+    return
+end
+`;
+            
+            const endCode = `
+print("脚本执行完成")`;
+            
+            return {
+                start: startCode,
+                end: endCode
+            };
+        }
+        
+        function generateKeySystemCode() {
+            const startCode = `
+local StarterGui = game:GetService("StarterGui")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+local API_ENDPOINT = "${apiSettings.endpoint}"
+local API_KEY = "${apiSettings.apiKey}"
+local KEY_VERIFICATION_ENDPOINT = "${apiSettings.keyVerificationEndpoint}"
+local KEY_ACTIVATION_ENDPOINT = "${apiSettings.keyActivationEndpoint}"
+
+local function GetHardwareID()
+    local success, result = pcall(function()
+        return game:GetService("RbxAnalyticsService"):GetClientId()
+    end)
+    
+    if success and result then
+        return result
+    else
+        return tostring(game:GetService("Players").LocalPlayer.UserId)
+    end
+end
+
+local function GetIPAddress()
+    local success, result = pcall(function()
+        return game:HttpGet("http://api.ipify.org")
+    end)
+    
+    if success and result then
+        return result
+    else
+        return "unknown"
+    end
+end
+
+local function CopyToClipboard(text)
+    local success = pcall(function()
+        local clipboard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+        if clipboard then
+            clipboard(text)
+            return true
+        end
+    end)
+    return success
+end
+local function APIRequest(endpoint, data)
+    local success, result = pcall(function()
+        local url = API_ENDPOINT .. endpoint
+        local headers = {
+            ["Content-Type"] = "application/json",
+            ["Authorization"] = "Bearer " .. API_KEY
+        }
+        
+        return game:HttpPost(url, HttpService:JSONEncode(data), headers)
+    end)
+    
+    if success and result then
+        local success2, parsed = pcall(function()
+            return HttpService:JSONDecode(result)
+        end)
+        
+        if success2 then
+            return parsed
+        end
+    end
+    
+    return nil
+end
+local function VerifyKey(key)
+    local response = APIRequest(KEY_VERIFICATION_ENDPOINT, {
+        key = key
+    })
+    
+    if response and response.success then
+        return response.valid
+    end
+    
+    return false
+end
+local function ActivateKey(key)
+    local hardwareID = GetHardwareID()
+    
+    local response = APIRequest(KEY_ACTIVATION_ENDPOINT, {
+        key = key,
+        hardwareID = hardwareID
+    })
+    
+    if response and response.success then
+        return response.activated
+    end
+    
+    return false
+end
+
+local function CreateSecureInputUI()
+    local localPlayer = Players.LocalPlayer
+    local playerGui = localPlayer:WaitForChild("PlayerGui")
+    
+ 
+    local secureScreen = Instance.new("ScreenGui")
+    secureScreen.Name = "SecureKeyInput"
+    secureScreen.ResetOnSpawn = false
+    secureScreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+ 
+    local background = Instance.new("Frame")
+    background.Name = "Background"
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.BackgroundColor3 = Color3.new(0, 0, 0)
+    background.BackgroundTransparency = 0.3
+    background.Parent = secureScreen
+    
+  
+    local mainContainer = Instance.new("Frame")
+    mainContainer.Name = "MainContainer"
+    mainContainer.Size = UDim2.new(0, 400, 0, 300)
+    mainContainer.Position = UDim2.new(0.5, -200, 0.5, -150)
+    mainContainer.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    mainContainer.BorderSizePixel = 0
+    mainContainer.Parent = secureScreen
+    
+  
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    title.BorderSizePixel = 0
+    title.Text = "卡密验证"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainContainer
+    
+  
+    local inputFrame = Instance.new("Frame")
+    inputFrame.Name = "InputFrame"
+    inputFrame.Size = UDim2.new(0.8, 0, 0, 40)
+    inputFrame.Position = UDim2.new(0.1, 0, 0.3, 0)
+    inputFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    inputFrame.BorderSizePixel = 0
+    inputFrame.Parent = mainContainer
+    
+    local inputBox = Instance.new("TextBox")
+    inputBox.Name = "InputBox"
+    inputBox.Size = UDim2.new(1, 0, 1, 0)
+    inputBox.Position = UDim2.new(0, 0, 0, 0)
+    inputBox.BackgroundTransparency = 1
+    inputBox.Text = ""
+    inputBox.PlaceholderText = "请输入卡密"
+    inputBox.TextColor3 = Color3.new(1, 1, 1)
+    inputBox.TextScaled = true
+    inputBox.ClearTextOnFocus = false
+    inputBox.Parent = inputFrame
+    
+   
+    local verifyButton = Instance.new("TextButton")
+    verifyButton.Name = "VerifyButton"
+    verifyButton.Size = UDim2.new(0.6, 0, 0, 40)
+    verifyButton.Position = UDim2.new(0.2, 0, 0.6, 0)
+    verifyButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    verifyButton.BorderSizePixel = 0
+    verifyButton.Text = "验证卡密"
+    verifyButton.TextColor3 = Color3.new(1, 1, 1)
+    verifyButton.TextScaled = true
+    verifyButton.Font = Enum.Font.GothamBold
+    verifyButton.Parent = mainContainer
+    
+
+    local statusText = Instance.new("TextLabel")
+    statusText.Name = "StatusText"
+    statusText.Size = UDim2.new(0.8, 0, 0, 40)
+    statusText.Position = UDim2.new(0.1, 0, 0.8, 0)
+    statusText.BackgroundTransparency = 1
+    statusText.Text = "请输入您的卡密进行验证"
+    statusText.TextColor3 = Color3.new(1, 1, 1)
+    statusText.TextScaled = true
+    statusText.Font = Enum.Font.Gotham
+    statusText.Parent = mainContainer
+    
+  
+    verifyButton.MouseButton1Click:Connect(function()
+        local key = inputBox.Text:gsub("%s+", "")
+        
+        if key == "" then
+            statusText.Text = "请输入有效的卡密"
+            statusText.TextColor3 = Color3.new(1, 0.5, 0)
+            return
+        end
+        
+        statusText.Text = "正在验证卡密..."
+        statusText.TextColor3 = Color3.new(1, 1, 0.5)
+        
+     
+        local isValid = VerifyKey(key)
+        
+        if isValid then
+            statusText.Text = "卡密验证成功，正在激活..."
+            statusText.TextColor3 = Color3.new(0.5, 1, 0.5)
+            
+         
+            local isActivated = ActivateKey(key)
+            
+            if isActivated then
+                statusText.Text = "卡密激活成功！正在启动脚本..."
+                statusText.TextColor3 = Color3.new(0, 1, 0)
+                
+             
+                local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                local tween = TweenService:Create(mainContainer, tweenInfo, {BackgroundColor3 = Color3.new(0, 0.3, 0)})
+                tween:Play()
+                
+                wait(2)
+                secureScreen:Destroy()
+                
+                StarterGui:SetCore("SendNotification", {
+                    Title = "卡密验证成功",
+                    Text = "设备已绑定到卡密，正在启动脚本",
+                    Duration = 5
+                })
+            else
+                statusText.Text = "卡密激活失败，请联系管理员"
+                statusText.TextColor3 = Color3.new(1, 0, 0)
+            end
+        else
+            statusText.Text = "卡密无效或已过期"
+            statusText.TextColor3 = Color3.new(1, 0, 0)
+        end
+    end)
+    
+
+    local function protectUI()
+   
+        secureScreen.Archivable = false
+        
+   
+        for _, child in pairs(secureScreen:GetDescendants()) do
+            child.Archivable = false
+        end
+    end
+    
+    protectUI()
+    
+  
+    secureScreen.Parent = playerGui
+    
+    return secureScreen
+end
+
+local localPlayer = Players.LocalPlayer
+
+StarterGui:SetCore("SendNotification", {
+    Title = "正在检查授权",
+    Text = "正在验证设备权限...",
+    Duration = 2
+})
+wait()
+local secureUI = CreateSecureInputUI()
+local timeout = 60 
+local startTime = tick()
+while secureUI.Parent and tick() - startTime < timeout do
+    wait(0.1)
+end
+
+if secureUI.Parent then
+    secureUI:Destroy()
+    
+    local hardwareID = GetHardwareID()
+    local ipAddress = GetIPAddress()
+    
+    local copySuccess = CopyToClipboard(hardwareID)
+    
+    StarterGui:SetCore("SendNotification", {
+        Title = "验证超时",
+        Text = copySuccess and "设备ID已复制到剪贴板" or "设备ID: " .. hardwareID,
+        Duration = 5
+    })
+    
+    wait()
+    
+    localPlayer:Kick("验证超时，请联系管理员获取卡密。设备ID: " .. hardwareID .. " IP: " .. ipAddress)
+    return
+end
+`;
+            
+            const endCode = `
+print("脚本执行完成")`;
+            
+            return {
+                start: startCode,
+                end: endCode
+            };
+        }
+        
+        function encryptSourceCode() {
+            const sourceCode = document.getElementById('sourceCode').value;
+            const method = document.getElementById('encryptionMethod').value;
+            
+            if (!sourceCode.trim()) {
+                showNotification('请输入要加密的源代码！', 'error');
+                return;
+            }
+            
+            let encryptedCode = '';
+            
+            switch(method) {
+                case 'base64':
+                    encryptedCode = btoa(unescape(encodeURIComponent(sourceCode)));
+                    break;
+                case 'xor':
+                    const key = 'frost';
+                    encryptedCode = '';
+                    for (let i = 0; i < sourceCode.length; i++) {
+                        encryptedCode += String.fromCharCode(sourceCode.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                    }
+                    encryptedCode = btoa(encryptedCode);
+                    break;
+                case 'reverse':
+                    encryptedCode = sourceCode.split('').reverse().join('');
+                    break;
+                case 'custom':
+                    encryptedCode = sourceCode
+                        .split('')
+                        .map(char => {
+                            const code = char.charCodeAt(0);
+                            return String.fromCharCode(code + 1);
+                        })
+                        .join('');
+                    break;
+                default:
+                    encryptedCode = sourceCode;
+            }
+            
+            document.getElementById('encryptedCode').textContent = encryptedCode;
+            document.getElementById('encryptionResult').style.display = 'block';
+            
+            addLog('加密源码', `方法: ${method}, 源码长度: ${sourceCode.length}`);
+            
+            showNotification('源码加密成功！', 'success');
+        }
+        
+        function copyEncryptedCode() {
+            const encryptedCode = document.getElementById('encryptedCode');
+            const textArea = document.createElement('textarea');
+            textArea.value = encryptedCode.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('加密代码已复制到剪贴板！', 'success');
+        }
+        
+        function updateBackendCode() {
+            backendCodeElement.textContent = backendCode;
+        }
+        
+        function copyBackendCode() {
+            const textArea = document.createElement('textarea');
+            textArea.value = backendCode;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('后台代码已复制到剪贴板！', 'success');
+        }
+        
+        function downloadBackendCode() {
+            const blob = new Blob([backendCode], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'protected_script.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('后台代码已下载为TXT文件！', 'success');
+        }
+        
+        function clearBackendCode() {
+            if (confirm('确定要清除后台代码吗？此操作不可撤销！')) {
+                backendCode = '';
+                localStorage.setItem('backendCode', backendCode);
+                updateBackendCode();
+                showNotification('后台代码已清除！', 'success');
+            }
+        }
+        
+        function deleteAllWhitelist() {
+            if (whitelist.length === 0) {
+                showNotification('没有白名单可删除！', 'info');
+                closeModal(deleteAllModal);
+                return;
+            }
+            
+            if (confirm('确定要删除所有白名单吗？此操作不可撤销！')) {
+                const count = whitelist.length;
+                whitelist = [];
+                localStorage.setItem('whitelist', JSON.stringify(whitelist));
+                
+                updateUsageStats();
+                
+                addLog('删除所有白名单', `数量: ${count}`);
+                
+                if (apiSettings.autoSync) {
+                    syncToAPI();
+                }
+                
+                showNotification(`已删除所有 ${count} 个白名单！`, 'success');
+                closeModal(deleteAllModal);
+                updateStats();
+                loadWhitelistTable();
+                updateWhitelistCode();
+            }
+        }
+        
+        function deleteAllBlacklist() {
+            if (blacklist.length === 0) {
+                showNotification('没有黑名单可删除！', 'info');
+                closeModal(deleteAllBlacklistModal);
+                return;
+            }
+            
+            if (confirm('确定要删除所有黑名单吗？此操作不可撤销！')) {
+                const count = blacklist.length;
+                blacklist = [];
+                localStorage.setItem('blacklist', JSON.stringify(blacklist));
+                
+                addLog('删除所有黑名单', `数量: ${count}`);
+                
+                showNotification(`已删除所有 ${count} 个黑名单！`, 'success');
+                closeModal(deleteAllBlacklistModal);
+                updateStats();
+                loadBlacklistTable();
+            }
+        }
+        
+        function deleteAllKeys() {
+            if (keys.length === 0) {
+                showNotification('没有卡密可删除！', 'info');
+                closeModal(deleteAllKeysModal);
+                return;
+            }
+            
+            if (confirm('确定要删除所有卡密吗？此操作不可撤销！')) {
+                const count = keys.length;
+                keys = [];
+                localStorage.setItem('keys', JSON.stringify(keys));
+                
+                addLog('删除所有卡密', `数量: ${count}`);
+                
+                showNotification(`已删除所有 ${count} 个卡密！`, 'success');
+                closeModal(deleteAllKeysModal);
+                updateStats();
+                loadKeysTable();
+            }
+        }
+        
+        function syncToAPI() {
+            if (!apiSettings.endpoint || !apiSettings.apiKey) {
+                return;
+            }
+            
+            console.log('模拟同步到API:', apiSettings.endpoint);
+            
+            addLog('同步到API', `端点: ${apiSettings.endpoint}`);
+        }
+        
+        function createProject() {
+            const projectName = document.getElementById('projectNameInput').value;
+            const projectDescription = document.getElementById('projectDescription').value;
+            
+            if (!projectName.trim()) {
+                showNotification('请输入项目名称！', 'error');
+                return;
+            }
+            
+            projectSettings.name = projectName;
+            projectSettings.description = projectDescription;
+            
+            localStorage.setItem('projectSettings', JSON.stringify(projectSettings));
+            
+            updateSystemName();
+            
+            closeModal(projectModal);
+            showAnnouncementModal();
+            
+            showNotification(`项目 "${projectName}" 创建成功！`, 'success');
+        }
+        
+        function saveProjectSettings() {
+            const projectName = document.getElementById('projectName').value;
+            const announcement = document.getElementById('announcement').value;
+            
+            if (!projectName.trim()) {
+                showNotification('请输入项目名称！', 'error');
+                return;
+            }
+            
+            projectSettings.name = projectName;
+            projectSettings.announcement = announcement;
+            
+            localStorage.setItem('projectSettings', JSON.stringify(projectSettings));
+            
+            updateSystemName();
+            
+            showNotification('项目设置已保存！', 'success');
+        }
+        
+        function updateSystemName() {
+            const systemNameText = projectSettings.name;
+            authSystemName.textContent = systemNameText;
+            systemName.textContent = systemNameText;
+            systemLogo.textContent = systemNameText.charAt(0).toUpperCase();
+            document.title = `${systemNameText} | ${systemNameText}白名单`;
+        }
+        
+        function loadSettings() {
+            document.getElementById('enableIPWhitelist').checked = settings.enableIPWhitelist;
+            document.getElementById('enableUsernameWhitelist').checked = settings.enableUsernameWhitelist;
+            document.getElementById('enableHardwareIDWhitelist').checked = settings.enableHardwareIDWhitelist;
+            document.getElementById('autoUpdateWhitelist').checked = settings.autoUpdateWhitelist;
+            document.getElementById('enableTwoFactorAuth').checked = settings.enableTwoFactorAuth;
+            document.getElementById('enableLoginAlerts').checked = settings.enableLoginAlerts;
+            document.getElementById('enableSessionTimeout').checked = settings.enableSessionTimeout;
+            document.getElementById('sessionTimeout').value = settings.sessionTimeout;
+            document.getElementById('backupInterval').value = settings.backupInterval;
+            document.getElementById('autoBackup').checked = settings.autoBackup;
+            document.getElementById('backupToAPI').checked = settings.backupToAPI;
+            document.getElementById('projectName').value = projectSettings.name;
+            document.getElementById('announcement').value = projectSettings.announcement;
+        }
+        
+        function saveSettings() {
+            settings.enableIPWhitelist = document.getElementById('enableIPWhitelist').checked;
+            settings.enableUsernameWhitelist = document.getElementById('enableUsernameWhitelist').checked;
+            settings.enableHardwareIDWhitelist = document.getElementById('enableHardwareIDWhitelist').checked;
+            settings.autoUpdateWhitelist = document.getElementById('autoUpdateWhitelist').checked;
+            settings.enableTwoFactorAuth = document.getElementById('enableTwoFactorAuth').checked;
+            settings.enableLoginAlerts = document.getElementById('enableLoginAlerts').checked;
+            settings.enableSessionTimeout = document.getElementById('enableSessionTimeout').checked;
+            settings.sessionTimeout = parseInt(document.getElementById('sessionTimeout').value);
+            settings.backupInterval = document.getElementById('backupInterval').value;
+            settings.autoBackup = document.getElementById('autoBackup').checked;
+            settings.backupToAPI = document.getElementById('backupToAPI').checked;
+            
+            localStorage.setItem('settings', JSON.stringify(settings));
+            
+            addLog('更新系统设置', '系统设置已更新');
+            
+            showNotification('设置已保存！', 'success');
+        }
+        
+        function updateStats() {
+            document.getElementById('whitelistCount').textContent = whitelist.length;
+            document.getElementById('blacklistCount').textContent = blacklist.length;
+            document.getElementById('keysCount').textContent = keys.length;
+            document.getElementById('totalUses').textContent = usageStats.totalUses;
+        }
+        
+        function updateUsageStats() {
+            usageStats.totalUses = whitelist.length;
+            
+            const activeCount = Math.floor(Math.random() * (whitelist.length / 2)) + 1;
+            usageStats.todayActive = Math.min(activeCount, whitelist.length);
+            
+            localStorage.setItem('usageStats', JSON.stringify(usageStats));
+            updateStats();
+        }
+        
+        function resetTodayStatsIfNeeded() {
+            const today = new Date().toDateString();
+            if (usageStats.lastReset !== today) {
+                usageStats.todayActive = 0;
+                usageStats.lastReset = today;
+                localStorage.setItem('usageStats', JSON.stringify(usageStats));
+            }
+        }
+        
+        function loadWhitelistTable() {
+            const tbody = document.querySelector('#whitelistTable tbody');
+            tbody.innerHTML = '';
+            
+            whitelist.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.id.substr(0, 8)}</td>
+                    <td>${item.value} (${item.type})</td>
+                    <td>${new Date(item.addedAt).toLocaleDateString()}</td>
+                    <td><span class="status-badge ${item.status === 'active' ? 'status-active' : 'status-inactive'}">${item.status === 'active' ? '活跃' : '禁用'}</span></td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleWhitelistStatus('${item.id}')">
+                            <i class="fas fa-${item.status === 'active' ? 'ban' : 'check'}"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteWhitelist('${item.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function loadBlacklistTable() {
+            const tbody = document.querySelector('#blacklistTable tbody');
+            tbody.innerHTML = '';
+            
+            blacklist.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.id.substr(0, 8)}</td>
+                    <td>${item.value} (${item.type})</td>
+                    <td>${new Date(item.addedAt).toLocaleDateString()}</td>
+                    <td><span class="status-badge ${item.status === 'active' ? 'status-active' : 'status-inactive'}">${item.status === 'active' ? '活跃' : '禁用'}</span></td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleBlacklistStatus('${item.id}')">
+                            <i class="fas fa-${item.status === 'active' ? 'ban' : 'check'}"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteBlacklist('${item.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function loadKeysTable() {
+            const tbody = document.querySelector('#keysTable tbody');
+            tbody.innerHTML = '';
+            
+            keys.forEach(key => {
+                const tr = document.createElement('tr');
+                const statusClass = key.boundDevice ? 'status-used' : (key.status === 'active' ? 'status-active' : 'status-inactive');
+                const statusText = key.boundDevice ? '已使用' : (key.status === 'active' ? '未使用' : '禁用');
+                
+                tr.innerHTML = `
+                    <td>${key.key}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${new Date(key.expiryDate).toLocaleDateString()}</td>
+                    <td>${key.boundDevice || '未绑定'}</td>
+                    <td>${new Date(key.createdAt).toLocaleDateString()}</td>
+                    <td class="key-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="toggleKeyStatus('${key.key}')">
+                            <i class="fas fa-${key.status === 'active' ? 'ban' : 'check'}"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteKey('${key.key}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function loadLogsTable() {
+            const tbody = document.querySelector('#logsTable tbody');
+            tbody.innerHTML = '';
+            
+            const recentLogs = logs.slice(-20).reverse();
+            
+            recentLogs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.user}</td>
+                    <td>${log.action}</td>
+                    <td>${log.details}</td>
+                    <td>${log.ip}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function loadRecentActivity() {
+            const tbody = document.querySelector('#recentActivity tbody');
+            tbody.innerHTML = '';
+            
+            const recentLogs = logs.slice(-10).reverse();
+            
+            recentLogs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.user}</td>
+                    <td>${log.details.includes('设备码') ? log.details.split(': ')[1] : 'N/A'}</td>
+                    <td>${log.action}</td>
+                    <td><span class="status-badge status-active">成功</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function toggleWhitelistStatus(id) {
+            if (confirm('确定要更改此白名单的状态吗？')) {
+                const item = whitelist.find(item => item.id === id);
+                if (item) {
+                    item.status = item.status === 'active' ? 'inactive' : 'active';
+                    localStorage.setItem('whitelist', JSON.stringify(whitelist));
+                    
+                    addLog('更新白名单状态', `值: ${item.value}, 状态: ${item.status}`);
+                    
+                    showNotification(`白名单状态已${item.status === 'active' ? '启用' : '禁用'}！`, 'success');
+                    loadWhitelistTable();
+                    updateStats();
+                }
+            }
+        }
+        
+        function toggleBlacklistStatus(id) {
+            if (confirm('确定要更改此黑名单的状态吗？')) {
+                const item = blacklist.find(item => item.id === id);
+                if (item) {
+                    item.status = item.status === 'active' ? 'inactive' : 'active';
+                    localStorage.setItem('blacklist', JSON.stringify(blacklist));
+                    
+                    addLog('更新黑名单状态', `值: ${item.value}, 状态: ${item.status}`);
+                    
+                    showNotification(`黑名单状态已${item.status === 'active' ? '启用' : '禁用'}！`, 'success');
+                    loadBlacklistTable();
+                }
+            }
+        }
+        
+        function toggleKeyStatus(keyValue) {
+            if (confirm('确定要更改此卡密的状态吗？')) {
+                const key = keys.find(k => k.key === keyValue);
+                if (key) {
+                    key.status = key.status === 'active' ? 'inactive' : 'active';
+                    localStorage.setItem('keys', JSON.stringify(keys));
+                    
+                    addLog('更新卡密状态', `卡密: ${keyValue}, 状态: ${key.status}`);
+                    
+                    showNotification(`卡密状态已${key.status === 'active' ? '启用' : '禁用'}！`, 'success');
+                    loadKeysTable();
+                }
+            }
+        }
+        
+        function deleteWhitelist(id) {
+            if (confirm('确定要删除这个白名单吗？')) {
+                const itemIndex = whitelist.findIndex(item => item.id === id);
+                if (itemIndex !== -1) {
+                    const item = whitelist[itemIndex];
+                    whitelist.splice(itemIndex, 1);
+                    localStorage.setItem('whitelist', JSON.stringify(whitelist));
+                    
+                    updateUsageStats();
+                    
+                    addLog('删除白名单', `值: ${item.value}`);
+                    
+                    if (apiSettings.autoSync) {
+                        syncToAPI();
+                    }
+                    
+                    showNotification('白名单已删除！', 'success');
+                    loadWhitelistTable();
+                    updateStats();
+                    updateWhitelistCode();
+                }
+            }
+        }
+        
+        function deleteBlacklist(id) {
+            if (confirm('确定要删除这个黑名单吗？')) {
+                const itemIndex = blacklist.findIndex(item => item.id === id);
+                if (itemIndex !== -1) {
+                    const item = blacklist[itemIndex];
+                    blacklist.splice(itemIndex, 1);
+                    localStorage.setItem('blacklist', JSON.stringify(blacklist));
+                    
+                    addLog('删除黑名单', `值: ${item.value}`);
+                    
+                    showNotification('黑名单已删除！', 'success');
+                    loadBlacklistTable();
+                }
+            }
+        }
+        
+        function deleteKey(keyValue) {
+            if (confirm('确定要删除这个卡密吗？')) {
+                const keyIndex = keys.findIndex(k => k.key === keyValue);
+                if (keyIndex !== -1) {
+                    const key = keys[keyIndex];
+                    keys.splice(keyIndex, 1);
+                    localStorage.setItem('keys', JSON.stringify(keys));
+                    
+                    addLog('删除卡密', `卡密: ${keyValue}`);
+                    
+                    showNotification('卡密已删除！', 'success');
+                    loadKeysTable();
+                    updateStats();
+                }
+            }
+        }
+        
+        function addLog(action, details) {
+            const log = {
+                timestamp: new Date().toISOString(),
+                user: currentUser.username,
+                action,
+                details,
+                ip: '192.168.1.100'
+            };
+            
+            logs.push(log);
+            localStorage.setItem('logs', JSON.stringify(logs));
+            
+            loadLogsTable();
+        }
+        
+        function exportLogs() {
+            const content = JSON.stringify(logs, null, 2);
+            const blob = new Blob([content], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('日志已导出为JSON文件！', 'success');
+        }
+    </script>
+</body>
+</html>"));
+//-->
+</script>
